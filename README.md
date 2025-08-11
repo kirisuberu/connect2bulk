@@ -1,2 +1,2 @@
-# connect2bulk
+# Connect2Bulk
 This is the repo for Connect2Bulk project. This will be design in AWS.
