@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 *.local
+dist
+.env
 
 # Editor directories and files
 .vscode/*
@@ -20,10 +22,11 @@ node_modules
 *.njsproj
 *.sln
 *.sw?
-
+.windsurfrules
 
 # amplify
 node_modules
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+amplify.yml
