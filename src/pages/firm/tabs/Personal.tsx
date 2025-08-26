@@ -576,7 +576,7 @@ const Section = styled.section`
   flex-direction: column;
   gap: 12px;
 `;
-
+//comment
 const SectionTitle = styled.h3`
   margin: 0;
   color: #2a2f45;
