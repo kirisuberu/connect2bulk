@@ -4,23 +4,18 @@ import './index.css'
 import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import { Amplify } from 'aws-amplify'
+import outputs from '../amplify_outputs.json'
+import { AlertProvider } from './components/AlertProvider'
 
-// Attempt to auto-configure Amplify using generated outputs if present
-try {
-  const modules = import.meta.glob('../amplify_outputs.json', { eager: true }) as Record<string, any>
-  const mod = Object.values(modules)[0]
-  if (mod) {
-    const outputs = mod.default ?? mod
-    Amplify.configure(outputs)
-  }
-} catch {
-  // no-op if outputs are not available yet
-}
+// Configure Amplify synchronously to ensure it's ready before any component code runs
+Amplify.configure(outputs as any)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AlertProvider>
+        <App />
+      </AlertProvider>
     </BrowserRouter>
   </StrictMode>,
 )
