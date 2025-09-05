@@ -5,7 +5,35 @@ import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../../amplify/data/resource';
  import { FIRM_TYPES } from '../constants';
 
-type FirmEntity = Schema['models']['Firm']['type'];
+type FirmEntity = {
+  id?: string;
+  firm_name?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  administrator_email?: string;
+  administrator_first_name?: string;
+  administrator_last_name?: string;
+  state?: string;
+  zip?: string;
+  firm_type?: string;
+  dba?: string;
+  dot?: string;
+  mc?: string;
+  ein?: string;
+  phone?: string;
+  website?: string;
+  insurance_provider?: string;
+  policy_number?: string;
+  policy_expiry?: string;
+  w9_on_file?: boolean;
+  brand_color?: string;
+  notes?: string;
+  load_posts?: number;
+  truck_posts?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
 
 const BusinessProfile: React.FC = () => {
   const client = useMemo(() => generateClient<Schema>(), []);

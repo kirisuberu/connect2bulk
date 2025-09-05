@@ -5,7 +5,35 @@ import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../../amplify/data/resource';
 import { useAlert } from '../../components/AlertProvider';
 
-type FirmEntity = Schema['models']['Firm']['type'];
+type FirmEntity = {
+  id?: string | null;
+  firm_name?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  administrator_email?: string | null;
+  administrator_first_name?: string | null;
+  administrator_last_name?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  firm_type?: string | null;
+  dba?: string | null;
+  dot?: string | null;
+  mc?: string | null;
+  ein?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  insurance_provider?: string | null;
+  policy_number?: string | null;
+  policy_expiry?: string | null;
+  w9_on_file?: boolean | null;
+  brand_color?: string | null;
+  notes?: string | null;
+  load_posts?: number | null;
+  truck_posts?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
 
 const Work: React.FC = () => {
   const alertApi = useAlert();
@@ -22,7 +50,7 @@ const Work: React.FC = () => {
 
   const firmIdKey = 'c2b:myFirmId';
 
-  const saveFirmId = (id?: string) => {
+  const saveFirmId = (id?: string | null) => {
     try {
       if (id) localStorage.setItem(firmIdKey, id);
     } catch {}

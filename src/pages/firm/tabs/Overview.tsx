@@ -143,8 +143,6 @@ const ResponsiveLineChart: React.FC<LineChartProps> = ({ title, labels, series, 
 
 // Helpers
 function makePath(data: number[], n: number, pad: { top: number; right: number; bottom: number; left: number }, max: number) {
-  const areaW = 800 - pad.left - pad.right;
-  const areaH = 320 - pad.top - pad.bottom;
   const coords = data.map((v, i) => pointAt(i, v, n, pad, max));
   return coords.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.px} ${p.py}`).join(' ');
 }

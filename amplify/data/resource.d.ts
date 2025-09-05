@@ -33,8 +33,25 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
             authorization: [];
             disabledOperations: [];
         }, "authorization", (import("@aws-amplify/data-schema").Authorization<"public", undefined, false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("search" | "list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen")[]) => Omit<SELF, "to">;
         })[]>, "authorization">;
+        User: import("@aws-amplify/data-schema").ModelType<import("@aws-amplify/data-schema-types").SetTypeSubArg<{
+            fields: {
+                first_name: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined, import("@aws-amplify/data-schema").ModelFieldType.String>;
+                last_name: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined, import("@aws-amplify/data-schema").ModelFieldType.String>;
+                email: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined, import("@aws-amplify/data-schema").ModelFieldType.String>;
+                phone: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined, import("@aws-amplify/data-schema").ModelFieldType.String>;
+                role: import("@aws-amplify/data-schema").EnumType<readonly ["Admin", "Regular"]>;
+            };
+            identifier: import("@aws-amplify/data-schema").ModelDefaultIdentifier;
+            secondaryIndexes: [];
+            authorization: [];
+            disabledOperations: [];
+        }, "authorization", ((import("@aws-amplify/data-schema").Authorization<"public", undefined, false> & {
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("search" | "list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen")[]) => Omit<SELF, "to">;
+        }) | (import("@aws-amplify/data-schema").Authorization<"private", undefined, false> & {
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("search" | "list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen")[]) => Omit<SELF, "to">;
+        }))[]>, "authorization">;
         Load: import("@aws-amplify/data-schema").ModelType<import("@aws-amplify/data-schema-types").SetTypeSubArg<{
             fields: {
                 load_number: import("@aws-amplify/data-schema").ModelField<import("@aws-amplify/data-schema").Nullable<string>, never, undefined, import("@aws-amplify/data-schema").ModelFieldType.String>;
@@ -55,7 +72,7 @@ declare const schema: import("@aws-amplify/data-schema").ModelSchema<{
             authorization: [];
             disabledOperations: [];
         }, "authorization", (import("@aws-amplify/data-schema").Authorization<"public", undefined, false> & {
-            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen" | "search")[]) => Omit<SELF, "to">;
+            to: <SELF extends import("@aws-amplify/data-schema").Authorization<any, any, any>>(this: SELF, operations: ("search" | "list" | "get" | "create" | "update" | "delete" | "read" | "sync" | "listen")[]) => Omit<SELF, "to">;
         })[]>, "authorization">;
     };
     authorization: [];

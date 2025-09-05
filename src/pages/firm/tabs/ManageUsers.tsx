@@ -15,6 +15,18 @@ interface NewUserForm {
   role: Role;
 }
 
+// Use a structural type to avoid tight coupling to generated Schema typings
+type UserEntity = {
+  id?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  role?: Role | string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 const DEFAULT_FORM: NewUserForm = {
   firstName: '',
   lastName: '',
@@ -29,7 +41,7 @@ const ManageUsers: React.FC = () => {
   const alertApi = useAlert();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [users, setUsers] = useState<Array<Schema['User']['type'] & { id: string }>>([]);
+  const [users, setUsers] = useState<Array<UserEntity>>([]);
   const [openModal, setOpenModal] = useState(false);
   const [form, setForm] = useState<NewUserForm>(DEFAULT_FORM);
   const [submitting, setSubmitting] = useState(false);

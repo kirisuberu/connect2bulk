@@ -15,7 +15,7 @@ const LoadBoard: React.FC = () => {
   // Amplify Data client
   const client = useMemo(() => generateClient<Schema>(), []);
   const { info, warning } = useAlert();
-  const { refreshToken, incrementRefreshToken, lastCreated, setLastCreated } = useLoadContext();
+  const { refreshToken, incrementRefreshToken, setLastCreated } = useLoadContext();
 
   // Add Load modal state
   const [isAddOpen, setAddOpen] = useState(false);
@@ -47,7 +47,7 @@ const LoadBoard: React.FC = () => {
   const pickupDateInputRef = useRef<HTMLInputElement | null>(null);
   const deliveryDateInputRef = useRef<HTMLInputElement | null>(null);
   
-  const openDatePicker = (ref: React.RefObject<HTMLInputElement>) => {
+  const openDatePicker = (ref: React.RefObject<HTMLInputElement | null>) => {
     const el = ref.current as any;
     try {
       if (el?.showPicker) {
