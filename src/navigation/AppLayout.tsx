@@ -6,7 +6,7 @@ import Sidebar from './Sidebar'
 const AppLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false)
   return (
-    <Wrapper>
+    <Wrapper $collapsed={collapsed}>
       <Sidebar collapsed={collapsed} onToggleCollapse={() => setCollapsed((c) => !c)} />
       <Main $collapsed={collapsed}>
         <Outlet />

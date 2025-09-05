@@ -325,7 +325,7 @@ const CloseButton = styled.button`
   &:hover { opacity: 1; }
 `;
 
-const progressAnim = (durationMs: number) => keyframes`
+const progressAnim = (_durationMs: number) => keyframes`
   from { transform: scaleX(1); }
   to { transform: scaleX(0); }
 `;

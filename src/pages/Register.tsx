@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { FIRM_TYPES } from './firm/constants';
 import { useNavigate } from 'react-router-dom';
 import { signUp } from 'aws-amplify/auth';
 
@@ -10,9 +11,9 @@ const Register: React.FC = () => {
   const [address, setAddress] = useState('');
   const [stateCode, setStateCode] = useState('');
   const [zip, setZip] = useState('');
-  const [firmType, setFirmType] = useState<'Carrier' | 'Shipper' | 'Broker' | 'Other'>('Carrier');
-  const [loadPosts, setLoadPosts] = useState<number | ''>('');
-  const [truckPosts, setTruckPosts] = useState<number | ''>('');
+  const [firmType, setFirmType] = useState<(typeof FIRM_TYPES)[number]>(FIRM_TYPES[0]);
+  const [loadPosts] = useState<number | ''>('');
+  const [truckPosts] = useState<number | ''>('');
   const [submitting, setSubmitting] = useState(false);
 
   const [adminEmail, setAdminEmail] = useState('');
@@ -131,11 +132,10 @@ const Register: React.FC = () => {
 
               <FormGroup>
                 <Label htmlFor="firmType">Firm Type</Label>
-                <Select id="firmType" value={firmType} onChange={(e) => setFirmType(e.target.value as any)}>
-                  <option value="Carrier">Carrier</option>
-                  <option value="Shipper">Shipper</option>
-                  <option value="Broker">Broker</option>
-                  <option value="Other">Other</option>
+                <Select id="firmType" value={firmType} onChange={(e) => setFirmType(e.target.value as (typeof FIRM_TYPES)[number])}>
+                  {FIRM_TYPES.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </Select>
               </FormGroup>
 

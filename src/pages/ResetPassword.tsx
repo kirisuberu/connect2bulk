@@ -25,7 +25,7 @@ const ResetPassword: React.FC = () => {
     }
     setSubmitting(true);
     try {
-      const res = await resetPassword({ username });
+      await resetPassword({ username });
       // Move to confirmation step regardless; Cognito will email a code.
       setStep('confirm');
       setInfo('We sent a verification code to your email.');

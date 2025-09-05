@@ -90,7 +90,7 @@ const FolderTabs: React.FC<FolderTabsProps> = ({
               aria-selected={i === activeIndex}
               $active={i === activeIndex}
               tabIndex={i === activeIndex ? 0 : -1}
-              ref={(el) => (tabRefs.current[i] = el)}
+              ref={(el) => { tabRefs.current[i] = el }}
               onClick={() => setActive(t.id)}
               {...(t.buttonProps || {})}
             >

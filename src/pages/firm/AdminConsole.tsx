@@ -2,6 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import FolderTabs from '../../components/FolderTabs';
 import BusinessProfile from './tabs/BusinessProfile';
+import ManageUsers from './tabs/ManageUsers';
 
 const AdminConsole: React.FC = () => {
   return (
@@ -19,14 +20,7 @@ const AdminConsole: React.FC = () => {
             {
               id: 'users',
               label: 'Manage Users',
-              content: (
-                <>
-                  <PanelTitle>Manage Users</PanelTitle>
-                  <PanelText>
-                    Invite, assign roles, and manage user access across the firm.
-                  </PanelText>
-                </>
-              ),
+              content: <ManageUsers />,
             },
             {
               id: 'billing',

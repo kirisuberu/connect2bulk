@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { confirmSignUp, signIn, confirmSignIn, resendSignUpCode, updatePassword } from 'aws-amplify/auth';
+import { confirmSignUp, signIn, confirmSignIn, resendSignUpCode, updatePassword, updateUserAttributes } from 'aws-amplify/auth';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../amplify/data/resource';
 
@@ -10,7 +10,7 @@ const EmailVerification: React.FC = () => {
   const [params] = useSearchParams();
   const initialEmail = params.get('email') ?? '';
 
-  const [email, setEmail] = useState(initialEmail);
+  const [email] = useState(initialEmail);
   const [codeDigits, setCodeDigits] = useState<string[]>(['', '', '', '', '', '']);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const [step, setStep] = useState<'verify' | 'setPassword'>('verify');
@@ -139,6 +139,7 @@ const EmailVerification: React.FC = () => {
     }
     setSubmitting(true);
     try {
+      const lowerEmail = email.trim().toLowerCase();
       const signInRes = await signIn({ username: email, password: tempPassword });
       const stepInfo = signInRes.nextStep;
       if (stepInfo.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
@@ -149,18 +150,95 @@ const EmailVerification: React.FC = () => {
         await updatePassword({ oldPassword: tempPassword, newPassword });
       }
 
+      // Persist admin first/last name to Cognito user attributes so the Personal profile can display them
+      try {
+        await updateUserAttributes({
+          userAttributes: {
+            given_name: first,
+            family_name: last,
+          },
+        });
+      } catch (attrErr) {
+        // Non-fatal: proceed even if attributes update fails
+        console.error('Failed to update user attributes (name):', attrErr);
+      }
+
       // Create Firm after successful password setup
       const pending = sessionStorage.getItem(pendingFirmKey);
       if (pending) {
         try {
           const firmPayload = JSON.parse(pending);
+          const adminEmailNormalized = String(
+            firmPayload.administrator_email || lowerEmail
+          )
+            .trim()
+            .toLowerCase();
+
           await client.models.Firm.create({
+            // Safe defaults first
+            firm_name: '',
+            address: '',
+            city: '',
+            country: 'USA',
+            state: '',
+            zip: '',
+            firm_type: 'Other',
+            dba: '',
+            dot: '',
+            mc: '',
+            ein: '',
+            phone: '',
+            website: '',
+            insurance_provider: '',
+            policy_number: '',
+            policy_expiry: '',
+            w9_on_file: false,
+            brand_color: '#0d6efd',
+            notes: '',
+            load_posts: 0,
+            truck_posts: 0,
+            // Merge any values captured during registration
             ...firmPayload,
+            // Ensure normalized/authoritative admin fields
+            administrator_email: adminEmailNormalized,
             administrator_first_name: first,
             administrator_last_name: last,
           });
         } catch (err) {
           console.error('Failed to create Firm after verification:', err);
+        }
+      } else {
+        // Fallback: if the pending payload is missing (e.g., cross-device verification),
+        // still create a minimal Firm linked to the user's email.
+        try {
+          await client.models.Firm.create({
+            firm_name: '',
+            address: '',
+            city: '',
+            country: 'USA',
+            administrator_email: lowerEmail,
+            administrator_first_name: first,
+            administrator_last_name: last,
+            state: '',
+            zip: '',
+            firm_type: 'Other',
+            dba: '',
+            dot: '',
+            mc: '',
+            ein: '',
+            phone: '',
+            website: '',
+            insurance_provider: '',
+            policy_number: '',
+            policy_expiry: '',
+            w9_on_file: false,
+            brand_color: '#0d6efd',
+            notes: '',
+            load_posts: 0,
+            truck_posts: 0,
+          });
+        } catch (err) {
+          console.error('Failed to create fallback Firm after verification:', err);
         }
       }
 
@@ -215,7 +293,7 @@ const EmailVerification: React.FC = () => {
                     onChange={(e) => handleDigitChange(i, e.target.value)}
                     onKeyDown={(e) => handleDigitKeyDown(i, e)}
                     onPaste={(e) => handlePaste(i, e)}
-                    ref={(el) => (inputsRef.current[i] = el)}
+                    ref={(el) => { inputsRef.current[i] = el }}
                   />
                 ))}
               </CodeGrid>

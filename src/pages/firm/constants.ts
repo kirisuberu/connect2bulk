@@ -20,3 +20,11 @@ export const TRAILER_TYPES = [
 export const TRAILER_TYPES_SET = new Set<string>(TRAILER_TYPES.map((t) => t.toUpperCase()));
 
 export const toAllCaps = (s: string) => s.toUpperCase();
+
+// Firm types (keep in sync with Amplify enum in amplify/data/resource.ts)
+export const FIRM_TYPES = [
+  'Carrier',
+  'Shipper',
+  'Broker',
+  'Other',
+] as const;

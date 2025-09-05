@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import FolderTabs from '../../components/FolderTabs';
 import { Icon } from '@iconify-icon/react';
@@ -7,6 +7,7 @@ import type { Schema } from '../../../amplify/data/resource';
 import { useAlert } from '../../components/AlertProvider';
 import AllFirmLoads from './tabs/AllFirmLoads';
 import { TRAILER_TYPES, TRAILER_TYPES_SET, toAllCaps } from './constants';
+import { useLoadContext } from '../../context/LoadContext';
 
  
 
@@ -14,6 +15,7 @@ const LoadBoard: React.FC = () => {
   // Amplify Data client
   const client = useMemo(() => generateClient<Schema>(), []);
   const { info, warning } = useAlert();
+  const { refreshToken, incrementRefreshToken, lastCreated, setLastCreated } = useLoadContext();
 
   // Add Load modal state
   const [isAddOpen, setAddOpen] = useState(false);
@@ -22,19 +24,31 @@ const LoadBoard: React.FC = () => {
   const [form, setForm] = useState({
     load_number: '',
     pickup_date: '',
+    delivery_date: '',
     origin: '',
     destination: '',
     trailer_type: '',
     equipment_requirement: '',
     miles: '',
     rate: '',
+    frequency: 'once',
     comment: '',
   });
 
-  // Ref for date input and handler to open native calendar
-  const dateInputRef = useRef<HTMLInputElement | null>(null);
-  const openDatePicker = () => {
-    const el = dateInputRef.current as any;
+  // Generate a unique random load number
+  const generateLoadNumber = () => {
+    const prefix = 'LN';
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `${prefix}-${timestamp}-${random}`;
+  };
+
+  // Refs for date inputs and handlers to open native calendar
+  const pickupDateInputRef = useRef<HTMLInputElement | null>(null);
+  const deliveryDateInputRef = useRef<HTMLInputElement | null>(null);
+  
+  const openDatePicker = (ref: React.RefObject<HTMLInputElement>) => {
+    const el = ref.current as any;
     try {
       if (el?.showPicker) {
         el.showPicker();
@@ -43,7 +57,7 @@ const LoadBoard: React.FC = () => {
     } catch (_) {
       // ignore and fallback to focus
     }
-    dateInputRef.current?.focus();
+    ref.current?.focus();
   };
 
   
@@ -52,12 +66,12 @@ const LoadBoard: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    if (name === 'pickup_date') {
+    if (name === 'pickup_date' || name === 'delivery_date') {
       // Sanitize: enforce 4-digit year max, keep YYYY-MM-DD shape
       const parts = value.split('-');
       if (parts[0] && parts[0].length > 4) parts[0] = parts[0].slice(0, 4);
       const sanitized = parts.join('-');
-      setForm((prev) => ({ ...prev, pickup_date: sanitized }));
+      setForm((prev) => ({ ...prev, [name]: sanitized }));
       return;
     }
     if (name === 'trailer_type') {
@@ -72,6 +86,16 @@ const LoadBoard: React.FC = () => {
     setError(null);
     setAddOpen(false);
   };
+  
+  // Initialize form with a random load number when modal opens
+  useEffect(() => {
+    if (isAddOpen) {
+      setForm(prev => ({
+        ...prev,
+        load_number: generateLoadNumber()
+      }));
+    }
+  }, [isAddOpen]);
 
   const onCancel = () => {
     if (adding) return;
@@ -130,6 +154,36 @@ const LoadBoard: React.FC = () => {
       }
     }
 
+    // Delivery date validation and ordering check
+    const dd = form.delivery_date.trim();
+    if (!dd) errors.push('Delivery Date is required.');
+    else {
+      const md = /^([0-9]{4})-(\d{2})-(\d{2})$/.exec(dd);
+      if (!md) errors.push('Delivery Date must be in YYYY-MM-DD format.');
+      else {
+        const year = parseInt(md[1], 10);
+        const month = parseInt(md[2], 10);
+        const day = parseInt(md[3], 10);
+        if (md[1].length !== 4) errors.push('Delivery year must be 4 digits.');
+        if (year < 1900 || year > 2100) errors.push('Delivery year must be between 1900 and 2100.');
+        if (month < 1 || month > 12) errors.push('Delivery month must be 01-12.');
+        if (day < 1 || day > 31) errors.push('Delivery day must be 01-31.');
+        const ddDate = new Date(dd);
+        const pdDate = new Date(pd);
+        if (!isNaN(ddDate.getTime()) && !isNaN(pdDate.getTime())) {
+          if (ddDate.getTime() < pdDate.getTime()) {
+            errors.push('Delivery Date cannot be earlier than Pickup Date.');
+          }
+        }
+      }
+    }
+
+    // Frequency validation
+    const allowedFreq = new Set(['once', 'daily', 'weekly', 'monthly']);
+    if (!allowedFreq.has((form.frequency || '').toLowerCase())) {
+      errors.push('Frequency must be one of: once, daily, weekly, monthly.');
+    }
+
     if (!form.origin.trim()) errors.push('Origin is required.');
     if (!form.destination.trim()) errors.push('Destination is required.');
 
@@ -176,15 +230,19 @@ const LoadBoard: React.FC = () => {
       const payload = {
         load_number: form.load_number.trim(),
         pickup_date: form.pickup_date.trim(),
+        delivery_date: form.delivery_date.trim(),
         origin: form.origin.trim(),
         destination: form.destination.trim(),
         trailer_type: form.trailer_type.trim(),
         equipment_requirement: form.equipment_requirement.trim(),
         miles: form.miles ? parseInt(form.miles, 10) : undefined,
         rate: form.rate ? parseFloat(form.rate) : undefined,
+        frequency: form.frequency,
         comment: form.comment.trim(),
         created_at: new Date().toISOString(),
       } as const;
+
+      console.debug('[LoadBoard] Creating Load with payload:', payload);
 
       // Basic required fields check
       if (!payload.load_number || !payload.pickup_date || !payload.origin || !payload.destination) {
@@ -193,20 +251,29 @@ const LoadBoard: React.FC = () => {
         return;
       }
 
-      await client.models.Load.create(payload as any);
+      const created = await client.models.Load.create(payload as any);
+      console.debug('[LoadBoard] Create response:', created);
       // Reset and close
       setForm({
         load_number: '',
         pickup_date: '',
+        delivery_date: '',
         origin: '',
         destination: '',
         trailer_type: '',
         equipment_requirement: '',
         miles: '',
         rate: '',
+        frequency: 'once',
         comment: '',
       });
       setAddOpen(false);
+      // optimistic: share the created item (shape may be in created.data)
+      const optimistic = (created as any)?.data ?? payload;
+      setLastCreated(optimistic);
+      console.debug('[LoadBoard] lastCreated set to:', optimistic);
+      // notify table to refresh
+      incrementRefreshToken();
       // TODO: refresh table data once data listing is implemented
     } catch (err: any) {
       console.error('Create Load failed', err);
@@ -226,7 +293,12 @@ const LoadBoard: React.FC = () => {
             {
               id: 'all',
               label: 'All Firm Loads',
-              content: <AllFirmLoads onAddNewLoad={() => setAddOpen(true)} />,
+              content: (
+                <AllFirmLoads
+                  key={`all-firm-loads-${refreshToken}`}
+                  onAddNewLoad={() => setAddOpen(true)}
+                />
+              ),
             },
             {
               id: 'search',
@@ -268,9 +340,9 @@ const LoadBoard: React.FC = () => {
               </ModalHeader>
               <form onSubmit={handleCreate}>
                 <FormGrid>
-                  <Field>
+                  <Field $full>
                     <FormLabel htmlFor="load_number">Load Number*</FormLabel>
-                    <TextInput id="load_number" name="load_number" value={form.load_number} onChange={onChange} required maxLength={50} />
+                    <TextInput id="load_number" name="load_number" value={form.load_number} readOnly aria-readonly="true" required maxLength={50} />
                   </Field>
                   <Field>
                     <FormLabel htmlFor="pickup_date">Pickup Date*</FormLabel>
@@ -286,9 +358,30 @@ const LoadBoard: React.FC = () => {
                         max="2100-12-31"
                         autoComplete="off"
                         inputMode="numeric"
-                        ref={dateInputRef}
+                        ref={pickupDateInputRef}
                       />
-                      <CalendarBtn type="button" onClick={openDatePicker} aria-label="Open date picker">
+                      <CalendarBtn type="button" onClick={() => openDatePicker(pickupDateInputRef)} aria-label="Open date picker">
+                        <Icon icon="mdi:calendar-month-outline" />
+                      </CalendarBtn>
+                    </DateFieldRow>
+                  </Field>
+                  <Field>
+                    <FormLabel htmlFor="delivery_date">Delivery Date*</FormLabel>
+                    <DateFieldRow>
+                      <TextInput
+                        id="delivery_date"
+                        name="delivery_date"
+                        type="date"
+                        value={form.delivery_date}
+                        onChange={onChange}
+                        required
+                        min="1900-01-01"
+                        max="2100-12-31"
+                        autoComplete="off"
+                        inputMode="numeric"
+                        ref={deliveryDateInputRef}
+                      />
+                      <CalendarBtn type="button" onClick={() => openDatePicker(deliveryDateInputRef)} aria-label="Open date picker">
                         <Icon icon="mdi:calendar-month-outline" />
                       </CalendarBtn>
                     </DateFieldRow>
@@ -331,6 +424,15 @@ const LoadBoard: React.FC = () => {
                   <Field>
                     <FormLabel htmlFor="rate">Rate</FormLabel>
                     <TextInput id="rate" name="rate" type="number" inputMode="decimal" min={0} step={0.01} value={form.rate} onChange={onChange} />
+                  </Field>
+                  <Field>
+                    <FormLabel htmlFor="frequency">Frequency</FormLabel>
+                    <Select id="frequency" name="frequency" value={form.frequency} onChange={onChange} required>
+                      <option value="once">Once Only</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </Select>
                   </Field>
                   <Field $full>
                     <FormLabel htmlFor="comment">Comment</FormLabel>
@@ -511,6 +613,11 @@ const TextArea = styled.textarea`
 /* Visually enforce ALL CAPS for fields like Trailer Type */
 const UppercaseInput = styled(TextInput)`
   text-transform: uppercase;
+`;
+
+// Styled select matching input styles
+const Select = styled.select`
+  ${sharedInput}
 `;
 
 

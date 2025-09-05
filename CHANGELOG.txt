@@ -1,6 +1,23 @@
 Connect2Bulk - Changelog
 All notable changes to this project will be documented in this file.
 
+Date: 2025-09-05 (UTC+08)
+
+Changed
+- Implemented a responsive user management UI in `src/pages/firm/tabs/ManageUsers.tsx` with a table, pagination, and an "Add New User" modal. Styled-components are placed under the component at module scope per project rule.
+
+Added
+- Backend `User` model and `Role` enum in `amplify/data/resource.ts` to store first name, last name, email, phone, and role.
+- Admin flow to add users: creates a Cognito user via Amplify Auth `signUp` with a temporary password and persists metadata to the Amplify Data `User` model.
+
+Date: 2025-09-04 (UTC+08)
+
+Fixed
+- Load data persistence issue in LoadBoard: loads added via "Add New Load" were lost when navigating away and returning to the loadboard. Implemented LoadContext to persist load data across navigation.
+
+Added
+- Created LoadContext provider to maintain load data state across component unmounting/remounting during navigation.
+
 Date: 2025-08-19 (UTC+08)
 
 Fixed
@@ -152,6 +169,8 @@ Changed
 - `src/pages/firm/Profile.tsx`: Tabs reduced to exactly three — Personal, Work, Settings. Removed Business Profile, Users, and Security tabs. Styled-components kept below the component at module scope.
 - `src/pages/firm/AdminConsole.tsx`: "Business Profile" tab now renders the full `BusinessProfile` form component.
 - `src/navigation/Sidebar.tsx`: Removed "Business Profile" nav item; access Business Profile from Admin Console tab.
+- `src/pages/firm/tabs/Personal.tsx`: Save now updates Cognito user attributes and also persists administrator fields to Amplify Data `Firm` model (matched by `administrator_email`).
+- `src/pages/firm/tabs/Personal.tsx`: Added saving state to disable the Save button and show "Saving..." feedback.
 
 Refactored
 - Replaced temporary BusinessProfile placeholder with a responsive form UI using styled-components placed below the component in `src/pages/firm/tabs/BusinessProfile.tsx`.
@@ -161,3 +180,18 @@ Added
 - `src/pages/firm/BusinessProfile.tsx`: New page wrapper with brand header embedding the BusinessProfile component.
 - `src/App.tsx`: Added route `/firm/business-profile` and page import.
 - `src/navigation/Sidebar.tsx`: Added "Business Profile" nav item with `mdi:office-building-outline` icon.
+
+Date: 2025-08-28 (UTC+08)
+
+Fixed
+- Prevented potential Firm creation failures due to missing required/expected fields by providing schema-aligned safe defaults across all creation paths.
+
+Changed
+- Standardized `Firm.create` payloads to include extended fields in `src/pages/EmailVerification.tsx` (both create paths), `src/pages/firm/Work.tsx`, and `src/pages/firm/tabs/Personal.tsx` (fallback create). Fields covered: `city`, `country`, `dba`, `dot`, `mc`, `ein`, `phone`, `website`, `insurance_provider`, `policy_number`, `policy_expiry`, `w9_on_file`, `brand_color`, `notes`, plus counters `load_posts`, `truck_posts`.
+- `src/pages/firm/LoadBoard.tsx`: Updated alert action button styles — primary uses bright blue (#0d6efd) with hover/active states and box-shadow for contrast on dark alert background (#1f2937); secondary is transparent with a semi-opaque white border; added focus-visible outlines for accessibility. Styled-components remain below the component.
+
+Refactored
+- No changes today.
+
+Added
+- No additions today.

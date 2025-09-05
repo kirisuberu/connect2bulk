@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import FolderTabs from '../../components/FolderTabs';
+import Overview from './tabs/Overview';
 
 const Dashboard: React.FC = () => {
   return (
@@ -13,14 +14,7 @@ const Dashboard: React.FC = () => {
             {
               id: 'overview',
               label: 'Overview',
-              content: (
-                <>
-                  <PanelTitle>Overview</PanelTitle>
-                  <PanelText>
-                    High-level summary of firm activity, KPIs, and recent updates will appear here.
-                  </PanelText>
-                </>
-              ),
+              content: <Overview />,
             },
             {
               id: 'statistics',

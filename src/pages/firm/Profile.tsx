@@ -21,22 +21,12 @@ const Profile: React.FC = () => {
             {
               id: 'work',
               label: 'Work',
-              content: (
-                <>
-                  <PanelTitle>Work</PanelTitle>
-                  <PanelText>Manage your work details and affiliation.</PanelText>
-                </>
-              ),
+              content: <Work />,
             },
             {
               id: 'settings',
               label: 'Settings',
-              content: (
-                <>
-                  <PanelTitle>Settings</PanelTitle>
-                  <PanelText>Configure account and app settings.</PanelText>
-                </>
-              ),
+              content: <Settings />,
             },
           ]}
           brand={
@@ -86,16 +76,4 @@ const PageName = styled.span`
   font-weight: 700;
   color: #2a2f45;
   font-size: clamp(14px, 2vw, 18px);
-`
-
-const PanelTitle = styled.h3`
-  margin: 0 0 8px 0;
-  color: #2a2f45;
-  font-size: clamp(16px, 2.2vw, 18px);
-`
-
-const PanelText = styled.p`
-  margin: 0;
-  color: #6c757d;
-  font-size: clamp(12px, 1.8vw, 14px);
 `

@@ -99,7 +99,7 @@ export function AlertProvider({ children, defaultPosition = 'top-right', maxPerP
       message: opts.message ?? null,
       icon: opts.icon ?? null,
       action: opts.action ?? null,
-      role: opts.role,
+      role: opts.role || 'alert',
       variant: opts.variant ?? defaultOptions.variant,
       autoClose: opts.autoClose ?? defaultOptions.autoClose,
       autoCloseDuration: opts.autoCloseDuration ?? defaultOptions.autoCloseDuration,
